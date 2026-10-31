@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$EngineRoot,
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [switch]$BuildGameTarget
 )
 $ErrorActionPreference = 'Stop'
 $Project = (Resolve-Path (Join-Path $PSScriptRoot '../ToSailTheStarrySky.uproject')).Path
@@ -19,7 +20,12 @@ $GitHead | Set-Content (Join-Path $Evidence 'head.txt')
 & $BuildTool ToSailTheStarrySkyEditor Win64 Development "-Project=$Project" -WaitMutex 2>&1 |
     Tee-Object (Join-Path $Evidence 'build.log')
 if ($LASTEXITCODE -ne 0) { throw "Unreal editor build failed ($LASTEXITCODE)" }
-if ($SkipTests) { Write-Host 'Build succeeded; automation tests deliberately skipped'; exit 0 }
+if ($BuildGameTarget) {
+    & $BuildTool ToSailTheStarrySky Win64 Development "-Project=$Project" -WaitMutex 2>&1 |
+        Tee-Object (Join-Path $Evidence 'game-target-build.log')
+    if ($LASTEXITCODE -ne 0) { throw "Unreal game target build failed ($LASTEXITCODE)" }
+}
+if ($SkipTests) { Write-Host 'Editor build succeeded; automation tests deliberately skipped. No gameplay, rendering or packaging proof.'; exit 0 }
 # Count authored TSTSS automation declarations instead of accepting a stale fixed
 # minimum as the suite grows. This is a *lower bound*, not a substitute for
 # matching individual test identities in a native AutomationReport.
@@ -41,7 +47,7 @@ $ReportDirectory = Join-Path $Evidence 'AutomationReport'
 if (Test-Path $ReportDirectory) { Remove-Item $ReportDirectory -Recurse -Force }
 New-Item -Path $ReportDirectory -ItemType Directory -Force | Out-Null
 $ExportArgument = '-ReportExportPath=' + $ReportDirectory
-& $EditorCmd $Project -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests TSTSS; Quit' $ExportArgument -log 2>&1 |
+& $EditorCmd $Project -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTest TSTSS;Quit' $ExportArgument -log 2>&1 |
     Tee-Object (Join-Path $Evidence 'automation.log')
 if ($LASTEXITCODE -ne 0) { throw "Unreal automation command failed ($LASTEXITCODE)" }
 $ReportPath = Join-Path $Evidence 'AutomationReport/index.json'
