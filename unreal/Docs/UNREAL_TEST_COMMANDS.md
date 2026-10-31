@@ -41,3 +41,7 @@ The transactional-combat and turn-order regression fixtures now stop after faile
 The native verification helper now checks Git HEAD and working-tree cleanliness **again after** its build and test sequence, refusing to report PASS if the branch changed while tests ran. This closes a stale-evidence risk when multiple agents commit concurrently to the Unreal migration branch. Run from a clean, pinned checkout rather than a changing shared working tree. Archive its exact revision, per-test reports and logs together; never promote a successful Godot smoke test to an Unreal build receipt.
 
 **Still pending:** native Unreal Engine 5.8 execution to verify this PowerShell script itself, compiler results, automation JSON schema, and test outcomes. The ship preview branch #610 is stacked on #608 and needs a fresh compatibility review when #608 advances; the SpriteCook #609 references remain subject to original-file rights/provenance review.
+
+## Automation threshold maintenance — 2026-10-31
+
+The verifier no longer uses the obsolete fixed `succeeded >= 6` threshold. It now requires successful aggregate count to be at least the actual number of entries in its named required-test list (currently ten), *and* still demands each named test exactly once with a successful per-test state. Expanding the required set no longer leaves a contradictory hard-coded count. This is source-only, not a successful UE 5.8 test receipt. Validate the report JSON field names on the first native run and retain exact-head artifacts.
