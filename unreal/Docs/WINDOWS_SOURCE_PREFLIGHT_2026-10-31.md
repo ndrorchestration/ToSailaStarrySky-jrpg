@@ -24,3 +24,11 @@ The older `TSTSS.Save.RoundTripFirstWakeAndParty` test now uses `tstss_qa_` plus
 - The installed UE 5.3 version must **not** be used to claim 5.8 success. Exact-head 5.8 build and native test receipts remain required.
 
 Review the authored startup Ender data asset and integrate the real First Wake vertical slice before any merge or public release. Main and the playable Godot reference are unchanged.
+
+
+## Follow-up environment verification (same date)
+- The `UE_5.8` directory now exists at `C:\Program Files\Epic Games\UE_5.8`, but a direct directory listing shows **only `.egstore`**. Therefore `Engine/Build/Build.version`, `Engine/Build/BatchFiles/Build.bat`, and `Engine/Binaries/Win64/UnrealEditor-Cmd.exe` are absent. It is **installer staging, not an installed engine**.
+- Invoking `Verify-Unreal.ps1 -EngineRoot 'C:\Program Files\Epic Games\UE_5.8' -SkipTests -BuildGameTarget` produced the expected fail-closed preflight error: `Missing Unreal Build.bat at C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat`. No compilation was attempted.
+- Visual Studio's `vswhere.exe -all -products * -format json` returned `[]`; no compatible MSVC install or Windows SDK was detected in standard locations. Epic UE 5.8 requires at least Visual Studio 2022 17.14 / MSVC 14.38 and Windows SDK 10.0.22621.0; recommended Visual Studio 2026 / MSVC 14.50, per its official 5.8 release notes.
+- `winget show --id Microsoft.VisualStudio.2022.BuildTools --exact` found version 17.14.44. A noninteractive installation command requesting the C++ build workload was launched on the authorized Windows machine; **the command only reached the installer download stage in the observed output, so its completion and component readiness must be rechecked**.
+- Continue only after checking engine version/Build.bat/Editor-Cmd, `vswhere` toolchain inventory, Windows SDK and available disk. Do not run old UE 5.3 binaries and do not infer a UE 5.8 PASS from the presence of `.egstore`.
