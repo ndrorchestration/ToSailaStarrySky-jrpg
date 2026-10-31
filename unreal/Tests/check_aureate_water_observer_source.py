@@ -6,7 +6,7 @@ observer=(ROOT/"Source/ToSailTheStarrySky/Private/AureateWakeWaterObserverCompon
 ship=(ROOT/"Source/ToSailTheStarrySky/Private/AureateWakePreviewActor.cpp").read_text()
 checks={
     "physics overlap sampled": "IsOverlappingComponent(WaterCollision)" in observer,
-    "physical velocity sampled": "GetComponentVelocity().Z" in observer,
+    "physical velocity sampled": "GetPhysicsLinearVelocity()" in observer and "GetComponentVelocity()" in observer and "IsSimulatingPhysics()" in observer,
     "nonfinite samples rejected": "FMath::IsFinite(VerticalSpeed)" in observer,
     "stale gate resets": observer.count("LandingGate->Reset()")>=3,
     "story gate evaluated before visual request": observer.find("LandingGate->Observe(")<observer.find("VisualShip->RequestForm("),
