@@ -54,6 +54,29 @@ bool FTSTSSCombatTurnOrderTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Next actor wraps to Ender"), FTSTSSCombatTurns::CurrentActor(After), FName(TEXT("Ender")));
     TestEqual(TEXT("Accepted action count"), After.AcceptedActions, 2);
 
+    // Port the Godot sole-survivor regression as a bounded turn-order fixture.
+    // Encounter victory/termination authority is not provided by this primitive.
+    FTSTSSCombatTurnState Survivor = After;
+    Survivor.Roster[1].Health = 0;
+    FTSTSSCombatAction SelfHit;
+    SelfHit.ActorId = TEXT("Ender");
+    SelfHit.TargetId = TEXT("Ender");
+    SelfHit.Power = 1;
+    FTSTSSCombatTurnState SurvivorNext;
+    if (!TestTrue(TEXT("Sole survivor takes a turn"), FTSTSSCombatTurns::TryAction(
+        Survivor, SelfHit, SurvivorNext))) return false;
+    TestEqual(TEXT("Sole survivor wraps round"), SurvivorNext.Round, 3);
+    TestEqual(TEXT("Sole survivor remains current actor"),
+        FTSTSSCombatTurns::CurrentActor(SurvivorNext), FName(TEXT("Ender")));
+    TestEqual(TEXT("Prior survivor state remains unchanged"), Survivor.Roster[0].Health, 20);
+    TestEqual(TEXT("Accepted survivor action recorded"), SurvivorNext.AcceptedActions, 3);
+
+    FTSTSSCombatTurnState BadStart = After;
+    TArray<FName> DuplicateOrder{TEXT("Ender"), TEXT("Ender"), TEXT("Foe")};
+    TestFalse(TEXT("Duplicate starting participants rejected"),
+        FTSTSSCombatTurns::TryBegin(Roster, DuplicateOrder, BadStart));
+    TestEqual(TEXT("Rejected begin preserves existing output"), BadStart.AcceptedActions, 2);
+
     FTSTSSCombatTurnState Invalid = Initial;
     Invalid.Order.Add(TEXT("Ender"));
     FTSTSSCombatTurnState Unchanged = After;
