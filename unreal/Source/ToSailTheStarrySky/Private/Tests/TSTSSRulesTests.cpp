@@ -31,6 +31,8 @@ bool FTSTSSFirstWakeOrderTest::RunTest(const FString& Parameters)
         State->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed));
     TestTrue(TEXT("Continue from restored beat"),
         State->AdvanceTo(ETSTSSFirstWakeBeat::Launched));
+    TestFalse(TEXT("Generic progression cannot forge sea contact"),
+        State->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact));
     State->Reset();
     TestTrue(TEXT("Start flyer"), State->AdvanceTo(ETSTSSFirstWakeBeat::FlyerDiscovered));
     TestTrue(TEXT("Hire Ionia"), State->AdvanceTo(ETSTSSFirstWakeBeat::IoniaHired));
