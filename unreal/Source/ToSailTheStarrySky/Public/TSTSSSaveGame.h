@@ -38,4 +38,7 @@ public:
     // Update only story fields, retaining existing party stats and future payload data.
     // Reject invalid source state without modifying this save.
     bool CaptureFirstWake(const UTSTSSFirstWakeState* State);
+
+    // Validate an explicitly provided live roster before replacing stored stats.
+    bool CapturePartyRoster(const TArray<FTSTSSCombatant>& Roster);
 };
