@@ -87,3 +87,41 @@ bool UTSTSSFirstWakeState::Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBe
     InspectionMask = SavedInspectionMask;
     return true;
 }
+
+FText UTSTSSFirstWakeState::GetCurrentObjective() const
+{
+    if (!bStarted)
+    {
+        return NSLOCTEXT("TSTSSFirstWake", "FindFlyer", "Find the captain's engineering flyer.");
+    }
+
+    switch (CurrentBeat)
+    {
+    case ETSTSSFirstWakeBeat::FlyerDiscovered:
+        return NSLOCTEXT("TSTSSFirstWake", "MeetIonia", "Meet Captain Ionia about the levitation engine.");
+    case ETSTSSFirstWakeBeat::IoniaHired:
+        return NSLOCTEXT("TSTSSFirstWake", "BoardWake", "Board the Aureate Wake.");
+    case ETSTSSFirstWakeBeat::BoardedAureateWake:
+        if ((InspectionMask & 0x01) == 0)
+            return NSLOCTEXT("TSTSSFirstWake", "InspectLift", "Inspect the lift system.");
+        if ((InspectionMask & 0x02) == 0)
+            return NSLOCTEXT("TSTSSFirstWake", "InspectPressure", "Inspect the pressure system.");
+        if ((InspectionMask & 0x04) == 0)
+            return NSLOCTEXT("TSTSSFirstWake", "InspectReserve", "Inspect the engine reserve.");
+        return NSLOCTEXT("TSTSSFirstWake", "ApproveEngineering", "Complete the engineering checks with Ionia.");
+    case ETSTSSFirstWakeBeat::EngineeringChecked:
+        return NSLOCTEXT("TSTSSFirstWake", "PrepareLaunch", "Prepare for the Aureate Wake's first launch.");
+    case ETSTSSFirstWakeBeat::Launched:
+        return NSLOCTEXT("TSTSSFirstWake", "FlightInProgress", "Hold on during the first flight.");
+    case ETSTSSFirstWakeBeat::SeaContact:
+        return NSLOCTEXT("TSTSSFirstWake", "AwaitFlotation", "Wait for the ship to settle safely on the water.");
+    case ETSTSSFirstWakeBeat::FlotationConfirmed:
+        return NSLOCTEXT("TSTSSFirstWake", "InspectEmptyReserve", "Inspect the depleted engine reserve.");
+    case ETSTSSFirstWakeBeat::EmptyReserveInspected:
+        return NSLOCTEXT("TSTSSFirstWake", "ReturnToBerth", "Return to the local berth with Ionia.");
+    case ETSTSSFirstWakeBeat::ReturnedToBerth:
+        return NSLOCTEXT("TSTSSFirstWake", "FirstWakeComplete", "First Wake complete.");
+    default:
+        return NSLOCTEXT("TSTSSFirstWake", "UnknownBeat", "Review the current objective.");
+    }
+}
