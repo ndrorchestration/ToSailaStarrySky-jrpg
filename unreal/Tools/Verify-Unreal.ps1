@@ -28,7 +28,7 @@ $TestDeclarations = @(
     Get-ChildItem -Path $SourceRoot -Filter '*Tests.cpp' -Recurse -File |
         ForEach-Object {
             [regex]::Matches((Get-Content $_.FullName -Raw),
-                'IMPLEMENT_SIMPLE_AUTOMATION_TEST\\s*\\(\\s*[^,]+,\\s*"(TSTSS\\.[^"]+)"') |
+                'IMPLEMENT_SIMPLE_AUTOMATION_TEST\s*\(\s*[^,]+,\s*"(TSTSS\.[^"]+)"') |
                 ForEach-Object { $_.Groups[1].Value }
         }
 )
