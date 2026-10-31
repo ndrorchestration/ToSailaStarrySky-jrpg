@@ -9,6 +9,12 @@ bool UTSTSSWaterLandingGate::Observe(float DeltaSeconds, bool bHullTouchesWater,
     {
         return false;
     }
+    if (Story->GetCurrentBeat() != ETSTSSFirstWakeBeat::Launched &&
+        Story->GetCurrentBeat() != ETSTSSFirstWakeBeat::SeaContact)
+    {
+        Reset();
+        return false;
+    }
     if (!bHullTouchesWater)
     {
         StableContactSeconds = 0.f;
