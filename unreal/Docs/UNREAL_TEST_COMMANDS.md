@@ -35,3 +35,9 @@ The transactional-combat and turn-order regression fixtures now stop after faile
 ## Stronger native evidence gate — 2026-10-31
 
 `Tools/Verify-Unreal.ps1` now checks individual automation report entries for nine required named `TSTSS.*` tests in addition to aggregate counters. Every required `fullTestPath` must appear exactly once with `state=Success`; omitted, duplicated, malformed or failing tests block a PASS. This prevents unrelated passing tests from satisfying a stale `succeeded >= 6` threshold. The report schema and names must be validated on an actual UE 5.8 Win64 Editor run; the new script logic is authored but **not executed** on an Unreal workstation. A renderer-enabled artistic review and packaged-game smoke test remain independent gates.
+
+## Verification checkout stability — 2026-10-31
+
+The native verification helper now checks Git HEAD and working-tree cleanliness **again after** its build and test sequence, refusing to report PASS if the branch changed while tests ran. This closes a stale-evidence risk when multiple agents commit concurrently to the Unreal migration branch. Run from a clean, pinned checkout rather than a changing shared working tree. Archive its exact revision, per-test reports and logs together; never promote a successful Godot smoke test to an Unreal build receipt.
+
+**Still pending:** native Unreal Engine 5.8 execution to verify this PowerShell script itself, compiler results, automation JSON schema, and test outcomes. The ship preview branch #610 is stacked on #608 and needs a fresh compatibility review when #608 advances; the SpriteCook #609 references remain subject to original-file rights/provenance review.
