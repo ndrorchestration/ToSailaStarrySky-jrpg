@@ -51,6 +51,7 @@ if ($Report.failed -gt 0 -or $Report.notRun -gt 0) {
 # Require evidence for named critical tests, not merely an aggregate success count.
 # Unreal AutomationTool exports per-test entries under tests[].fullTestPath/state.
 $RequiredTests = @(
+    'TSTSS.AureateWake.Review.FourFormMechanics',
     'TSTSS.Combat.TransactionalActions',
     'TSTSS.Combat.RejectsInvalidActionsWithoutMutation',
     'TSTSS.Combat.TurnOrderAndAtomicity',
@@ -60,6 +61,7 @@ $RequiredTests = @(
     'TSTSS.FirstWake.WaterLandingRequiresMeasuredStability',
     'TSTSS.FirstWake.WaterLandingRestore',
     'TSTSS.FirstWake.WaterLandingNegativePaths',
+    'TSTSS.FirstWake.WaterlineGeometry',
     'TSTSS.Save.RejectsUnsupportedSchema',
     'TSTSS.Save.RejectsUnsafeSlots',
     'TSTSS.Save.RoundTripFirstWakeAndParty'
