@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Deterministic authored-lookdev Aureate Wake dragonfly wing asset, glTF 2.0 GLB.
 
-All geometry in centimeters, authored Unreal +X span, +Y lateral, +Z up; exported
-as glTF +Y up so interchange can recover the Unreal orientation. No in-game
+Authored source dimensions are centimeters in Unreal +X/+Y/+Z coordinates.
+glTF 2.0 encodes positions in meters and +Y up; position export converts cm
+to meters while normals remain unit vectors. Inspect imported cm scale in Unreal. No in-game
 physics, unlock or creator-art approval is conferred by this review asset.
 Pure Python standard library: offline, zero cost, no remote dependencies.
 """
@@ -268,6 +269,11 @@ def gltf_axis(p):
     return (p[0],p[2],-p[1])
 
 
+def gltf_position(p):
+    # glTF 2.0 linear positions are METERS. The authored mesh dimensions are cm.
+    return tuple(x * 0.01 for x in gltf_axis(p))
+
+
 def make_glb(surfaces,embedded_png):
     buffer=bytearray()
     views=[]
@@ -291,7 +297,7 @@ def make_glb(surfaces,embedded_png):
         accessors.append(a)
         return len(accessors)-1
     for material,s in enumerate(surfaces):
-        pp=[gltf_axis(v) for v in s["positions"]]
+        pp=[gltf_position(v) for v in s["positions"]]
         nn=[gltf_axis(v) for v in normals(s)]
         pa=accessor(pp,"VEC3","f",5126,34962,True)
         na=accessor(nn,"VEC3","f",5126,34962)
@@ -314,7 +320,7 @@ def make_glb(surfaces,embedded_png):
          "materials":materials,"textures":[{"sampler":0,"source":0}],
          "samplers":[{"magFilter":9729,"minFilter":9729,"wrapS":10497,"wrapT":10497}],
          "images":[{"name":"Wing_CyanGoldAlbedo","bufferView":image_view,"mimeType":"image/png"}],
-         "extras":{"authority":STATUS,"reveal_gates":"Not part of this asset; four-form ship preview remains gated"}}
+         "extras":{"authority":STATUS,"sourceUnits":"centimeters","gltfLinearUnits":"meters","sourceToGltfScale":0.01,"reveal_gates":"Not part of this asset; four-form ship preview remains gated"}}
     j=json.dumps(doc,sort_keys=True,separators=(",",":"),ensure_ascii=True).encode()
     j+=b" "*((-len(j))%4)
     while len(buffer)%4:buffer.append(0)
@@ -329,7 +335,7 @@ def build():
     img=png_rgba(*PBR_SIZE,texture_rgba())
     glb,gltf=make_glb(pieces,img)
     summary={"status":STATUS,"source":"deterministic procedural 3D wing study",
-             "units":"centimeters","root_axis":"Unreal +X", "span_cm":SPAN,"full_width_cm":WIDTH,
+             "source_units":"centimeters","gltf_linear_units":"meters","source_to_gltf_scale":0.01,"root_axis":"Unreal +X", "span_cm":SPAN,"full_width_cm":WIDTH,
              "topology":[{"name":p["name"],"vertices":len(p["positions"]),"triangles":len(p["faces"])} for p in pieces],
              "texture_resolution":list(PBR_SIZE),
              "integration":"Review imported static mesh in Unreal 5.8; do not automatically replace approved ship assets",
