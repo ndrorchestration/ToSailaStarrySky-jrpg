@@ -25,12 +25,12 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
     Teams.Add(TEXT("Ender"), TEXT("crew")); Teams.Add(TEXT("Foe"), TEXT("enemy"));
     FTSTSSCombatTurnState Output;
     TestFalse(TEXT("Unlearned blocked"), FTSTSSCombatAbilities::TryUse(
-        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, Output));
+        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, TEXT("crew"), TEXT("enemy"), Output));
     Learned.Add(TEXT("Ender"), TSet<FName>{TEXT("Strike")});
     TestFalse(TEXT("Enemy skill cannot target ally"), FTSTSSCombatAbilities::TryUse(
-        State, TEXT("Ender"), TEXT("Ender"), TEXT("Strike"), Catalog, Learned, Teams, Output));
+        State, TEXT("Ender"), TEXT("Ender"), TEXT("Strike"), Catalog, Learned, Teams, TEXT("crew"), TEXT("enemy"), Output));
     if (!TestTrue(TEXT("Learned enemy skill accepted"), FTSTSSCombatAbilities::TryUse(
-        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, Output))) return false;
+        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, TEXT("crew"), TEXT("enemy"), Output))) return false;
     if (!TestTrue(TEXT("Accepted action returns complete roster"), Output.Roster.Num() == 2)) return false;
     TestEqual(TEXT("Target damaged"), Output.Roster[1].Health, 4);
     TestEqual(TEXT("Resource spent"), Output.Roster[0].Resource, 3);
@@ -41,14 +41,14 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
     TMap<FName, FName> MissingFaction = Teams;
     MissingFaction.Remove(TEXT("Foe"));
     TestFalse(TEXT("Missing target faction blocked"), FTSTSSCombatAbilities::TryUse(
-        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, MissingFaction, Output));
+        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, MissingFaction, TEXT("crew"), TEXT("enemy"), Output));
     TestEqual(TEXT("Rejected faction preserves output HP"), Output.Roster[1].Health, AcceptedHealth);
 
     FTSTSSAbilitySpec Invalid = Strike;
     Invalid.Cost = -1;
     Catalog.Add(TEXT("Strike"), Invalid);
     TestFalse(TEXT("Negative ability cost blocked"), FTSTSSCombatAbilities::TryUse(
-        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, Output));
+        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, TEXT("crew"), TEXT("enemy"), Output));
     TestEqual(TEXT("Rejected spec preserves resources"), Output.Roster[0].Resource, AcceptedResources);
 
     Catalog.Add(TEXT("Strike"), Strike);
@@ -56,7 +56,7 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
     FoeLearned.Add(TEXT("Foe"), TSet<FName>{TEXT("Strike")});
     TestFalse(TEXT("Out-of-turn actor blocked"), FTSTSSCombatAbilities::TryUse(
         State, TEXT("Foe"), TEXT("Ender"), TEXT("Strike"), Catalog,
-        FoeLearned, Teams, Output));
+        FoeLearned, Teams, TEXT("crew"), TEXT("enemy"), Output));
     TestEqual(TEXT("Out-of-turn rejection preserves output"), Output.Roster[1].Health, AcceptedHealth);
     TestEqual(TEXT("Input turn remains unchanged"), State.AcceptedActions, 0);
     return true;
