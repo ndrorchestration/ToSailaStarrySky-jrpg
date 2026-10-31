@@ -30,6 +30,14 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
         Gate->Reset();
         return;
     }
+    // Avoid repeated water queries after the relevant story event unless buoyancy is active.
+    const ETSTSSFirstWakeBeat Beat = Story->GetCurrentBeat();
+    if (!bEnablePrototypeBuoyancy && Beat != ETSTSSFirstWakeBeat::Launched &&
+        Beat != ETSTSSFirstWakeBeat::SeaContact)
+    {
+        Gate->Reset();
+        return;
+    }
     TArray<AActor*> Overlaps;
     Hull->GetOverlappingActors(Overlaps);
     bool bInWater = false;
@@ -74,8 +82,11 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
         FMath::IsFinite(VerticalDampingPerSecond) &&
         FMath::IsFinite(WaterSurfaceZ))
     {
-        const float Acceleration = FMath::Max(0.f, MaxBuoyantAccelerationCms2) * Submersion -
-            FMath::Max(0.f, VerticalDampingPerSecond) * VerticalSpeed;
+        // Bound net force to avoid runaway impulses from invalid tuning.
+        const float MaxAcceleration = FMath::Clamp(MaxBuoyantAccelerationCms2, 0.f, 4000.f);
+        const float Damping = FMath::Clamp(VerticalDampingPerSecond, 0.f, 10.f);
+        const float Acceleration = FMath::Clamp(MaxAcceleration * Submersion -
+            Damping * VerticalSpeed, -MaxAcceleration, MaxAcceleration);
         const float Mass = Hull->GetMass();
         if (Mass > 0.f && FMath::IsFinite(Acceleration))
         {
