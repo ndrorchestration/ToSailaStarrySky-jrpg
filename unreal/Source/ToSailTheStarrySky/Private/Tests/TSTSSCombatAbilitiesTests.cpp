@@ -34,6 +34,28 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Target damaged"), Output.Roster[1].Health, 4);
     TestEqual(TEXT("Resource spent"), Output.Roster[0].Resource, 3);
     TestEqual(TEXT("Input preserved"), State.Roster[1].Health, 8);
+    // Rejected requests must not overwrite an already accepted result.
+    const int32 AcceptedHealth = Output.Roster[1].Health;
+    const int32 AcceptedResources = Output.Roster[0].Resource;
+    TMap<FName, FName> MissingFaction = Teams;
+    MissingFaction.Remove(TEXT("Foe"));
+    TestFalse(TEXT("Missing target faction blocked"), FTSTSSCombatAbilities::TryUse(
+        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, MissingFaction, Output));
+    TestEqual(TEXT("Rejected faction preserves output HP"), Output.Roster[1].Health, AcceptedHealth);
+
+    FTSTSSAbilitySpec Invalid = Strike;
+    Invalid.Cost = -1;
+    Catalog.Add(TEXT("Strike"), Invalid);
+    TestFalse(TEXT("Negative ability cost blocked"), FTSTSSCombatAbilities::TryUse(
+        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, Output));
+    TestEqual(TEXT("Rejected spec preserves resources"), Output.Roster[0].Resource, AcceptedResources);
+
+    Catalog.Add(TEXT("Strike"), Strike);
+    TestFalse(TEXT("Out-of-turn actor blocked"), FTSTSSCombatAbilities::TryUse(
+        State, TEXT("Foe"), TEXT("Ender"), TEXT("Strike"), Catalog,
+        TMap<FName, TSet<FName>>{{TEXT("Foe"), TSet<FName>{TEXT("Strike")}}}, Teams, Output));
+    TestEqual(TEXT("Out-of-turn rejection preserves output"), Output.Roster[1].Health, AcceptedHealth);
+    TestEqual(TEXT("Input turn remains unchanged"), State.AcceptedActions, 0);
     return true;
 }
 #endif
