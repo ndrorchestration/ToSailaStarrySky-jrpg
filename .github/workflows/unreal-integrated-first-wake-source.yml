@@ -37,6 +37,13 @@ jobs:
         run: |
           python unreal/Tests/check_aureate_preview_source.py
           python unreal/Tests/check_aureate_water_observer_source.py
+      - name: Compile and execute actual production C++ waterline geometry (not Unreal)
+        run: |
+          c++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
+            -I unreal/Source/ToSailTheStarrySky/Public \
+            unreal/Tests/native_waterline_geometry_test.cpp \
+            -o "$RUNNER_TEMP/tstss-waterline-geometry-test"
+          "$RUNNER_TEMP/tstss-waterline-geometry-test"
       - name: Isolated C++ request logic and authored-wing gates (not Unreal)
         run: python unreal/Tests/check_aureate_request_logic.py
       - name: Native automation declarations versus required verifier inventory
