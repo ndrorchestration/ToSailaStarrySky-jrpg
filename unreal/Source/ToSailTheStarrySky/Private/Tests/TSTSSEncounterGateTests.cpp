@@ -43,6 +43,18 @@ bool FTSTSSEncounterGateTest::RunTest(const FString& Parameters)
     Draw.Roster[1].Health = 0;
     TestTrue(TEXT("Draw detected"),
         FTSTSSEncounterGate::Evaluate(Draw, Factions, Crew, Enemies) == ETSTSSEncounterOutcome::Draw);
+    FTSTSSCombatTurnState BadStats = Initial;
+    BadStats.Roster[0].Attack = -1;
+    TestTrue(TEXT("Negative attack invalidates encounter"),
+        FTSTSSEncounterGate::Evaluate(BadStats, Factions, Crew, Enemies) == ETSTSSEncounterOutcome::Invalid);
+    BadStats = Initial;
+    BadStats.Roster[1].Defense = -1;
+    TestTrue(TEXT("Negative defense invalidates encounter"),
+        FTSTSSEncounterGate::Evaluate(BadStats, Factions, Crew, Enemies) == ETSTSSEncounterOutcome::Invalid);
+    FTSTSSCombatTurnState Preserved = Won;
+    TestFalse(TEXT("Invalid statistics cannot execute an action"),
+        FTSTSSEncounterGate::TryAction(BadStats, Factions, Crew, Enemies, Strike, Preserved));
+    TestEqual(TEXT("Invalid-stat action preserves output"), Preserved.AcceptedActions, Won.AcceptedActions);
     Factions.Remove(TEXT("Foe"));
     TestTrue(TEXT("Missing faction rejected"),
         FTSTSSEncounterGate::Evaluate(Initial, Factions, Crew, Enemies) == ETSTSSEncounterOutcome::Invalid);
