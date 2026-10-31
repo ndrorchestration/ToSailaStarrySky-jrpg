@@ -24,8 +24,12 @@ void ATSTSSWaterContactAdapter::BindStory(UTSTSSFirstWakeState* InStory)
 void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-    if (!IsValid(Story) || !IsValid(Gate) || !IsValid(Hull) ||
-        !Hull->IsSimulatingPhysics()) return;
+    if (!IsValid(Gate)) return;
+    if (!IsValid(Story) || !IsValid(Hull) || !Hull->IsSimulatingPhysics())
+    {
+        Gate->Reset();
+        return;
+    }
     TArray<AActor*> Overlaps;
     Hull->GetOverlappingActors(Overlaps);
     bool bInWater = false;
