@@ -90,7 +90,8 @@ bool ATSTSSExplorerCharacter::SaveFirstWake(const FString& Slot)
     UTSTSSSaveGame* Save = bExistingSlot
         ? UTSTSSPersistence::LoadProgress(Slot)
         : NewObject<UTSTSSSaveGame>(this);
-    if (!IsValid(Save) || !Save->CaptureFirstWake(FirstWakeState))
+    if (!IsValid(Save) || !Save->CanCheckpointParty(bHasLivePartyRoster) ||
+        !Save->CaptureFirstWake(FirstWakeState))
     {
         return false;
     }
