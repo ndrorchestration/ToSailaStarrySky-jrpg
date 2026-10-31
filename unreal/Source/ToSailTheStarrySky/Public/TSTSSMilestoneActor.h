@@ -14,6 +14,8 @@ public:
     bool TryActivate(UTSTSSFirstWakeState* State);
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="TSTSS|First Wake")
     ETSTSSFirstWakeBeat Milestone = ETSTSSFirstWakeBeat::FlyerDiscovered;
+    UFUNCTION(BlueprintImplementableEvent, Category="TSTSS|First Wake")
+    void OnMilestoneActivated();
     UPROPERTY(BlueprintAssignable, Category="TSTSS|First Wake")
     FSimpleMulticastDelegate DummyUnused; // Removed in implementation pass before compilation.
 protected:
