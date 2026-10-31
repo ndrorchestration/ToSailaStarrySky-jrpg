@@ -35,3 +35,11 @@ No UE compile, native automation, 3D asset import, ship physics, visual acceptan
 ## Follow-up regression pulled forward
 
 The UE turn-order test now mirrors two additional Godot #601 scenarios: sole surviving actor round rollover and duplicate participant rejection on battle initialization, including preservation of the prior output on rejection. This is **test source only, not proof of Unreal compilation or test pass**. The fixture also demonstrates that the current turn primitive has no battle-victory/encounter termination authority: a surviving actor can continue acting when opponents are incapacitated. Before playable battle integration, add an explicit encounter lifecycle gate that determines when turns terminate. Preserve draft status and native verification gates.
+
+## 2026-10-30 follow-up — isolated encounter lifecycle gate
+
+- Added `FTSTSSEncounterGate` (public header and C++ implementation) above the existing transactional turn primitive. It evaluates an explicitly provided two-faction roster as `Invalid`, `Ongoing`, `Victory`, `Defeat`, or `Draw`, and prevents further actions once the encounter is terminal. Its failure path preserves the output argument.
+- Added `TSTSS.Combat.EncounterCompletion` automation source covering a lethal action, subsequent-action rejection, unchanged original state, defeat, simultaneous incapacitation, and missing-faction refusal.
+- **Not an encounter spawner or party/recruitment authorization system.** Faction data is caller-supplied; canonical encounter eligibility, rewards, retreats, animations, save/resume semantics and level exit remain unimplemented. All native Unreal build/test evidence remains pending.
+- Cross-PR pull assessment is unchanged: #601 supplies behavioral fixtures, #610 supplies an isolated stacked ship visual preview, #609 supplies provenance-bound concept art references. None was merged, and #609/#610 content was not copied into #608.
+- Required native test: `TSTSS.Combat.EncounterCompletion`, alongside all existing `TSTSS.Combat.*` tests in a clean UE 5.8 Win64 editor build, retaining exact-head reports.
