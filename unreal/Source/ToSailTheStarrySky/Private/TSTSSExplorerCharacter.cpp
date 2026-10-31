@@ -2,6 +2,7 @@
 #include "TSTSSMilestoneActor.h"
 #include "TSTSSPersistence.h"
 #include "TSTSSSaveGame.h"
+#include "TSTSSPartyCombatBridge.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -125,5 +126,22 @@ bool ATSTSSExplorerCharacter::SetLivePartyRoster(const TArray<FTSTSSCombatant>& 
     }
     LivePartyRoster = NewRoster;
     bHasLivePartyRoster = true;
+    return true;
+}
+
+bool ATSTSSExplorerCharacter::TryApplyLiveCombatAction(const FTSTSSCombatAction& Action)
+{
+    if (!bHasLivePartyRoster)
+    {
+        return false;
+    }
+    TArray<FTSTSSCombatant> Candidate;
+    if (!UTSTSSPartyCombatBridge::TryApplyValidatedAction(
+        LivePartyRoster, Action, Candidate))
+    {
+        return false;
+    }
+    // Commit only after the combat result passes the save contract.
+    LivePartyRoster = MoveTemp(Candidate);
     return true;
 }
