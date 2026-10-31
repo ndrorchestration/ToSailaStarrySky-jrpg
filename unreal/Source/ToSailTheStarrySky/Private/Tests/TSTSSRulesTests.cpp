@@ -3,6 +3,7 @@
 #include "TSTSSCombatRules.h"
 #include "TSTSSSaveGame.h"
 #include "TSTSSPersistence.h"
+#include "Kismet/GameplayStatics.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -145,5 +146,49 @@ bool FTSTSSSaveSlotGuardTest::RunTest(const FString& Parameters)
     Save->SchemaVersion = 99;
     TestFalse(TEXT("Invalid payload write rejected"), UTSTSSPersistence::SaveProgress(TEXT("test_slot"), Save));
     return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSSaveRoundTripTest,
+    "TSTSS.Save.RoundTripFirstWakeAndParty",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTSTSSSaveRoundTripTest::RunTest(const FString& Parameters)
+{
+    // Dedicated test slot; never overwrite a player's normal slot.
+    const FString Slot = TEXT("tstss_automation_roundtrip_v1");
+    if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
+    {
+        AddError(TEXT("Test slot already exists; refusing to overwrite it"));
+        return false;
+    }
+    UTSTSSSaveGame* Original = NewObject<UTSTSSSaveGame>();
+    Original->bFirstWakeStarted = true;
+    Original->FirstWakeBeat = ETSTSSFirstWakeBeat::EngineeringChecked;
+    FTSTSSCombatant Ender;
+    Ender.CharacterId = TEXT("Ender");
+    Ender.Health = 14; Ender.MaxHealth = 20;
+    Ender.Resource = 4; Ender.MaxResource = 9;
+    Ender.Attack = 3; Ender.Defense = 2;
+    Original->PartyRoster.Add(Ender);
+    if (!TestTrue(TEXT("Save succeeds"), UTSTSSPersistence::SaveProgress(Slot, Original)))
+    {
+        return false;
+    }
+    const UTSTSSSaveGame* Loaded = UTSTSSPersistence::LoadProgress(Slot);
+    const bool bLoaded = TestNotNull(TEXT("Valid save reloads"), Loaded);
+    if (bLoaded)
+    {
+        TestEqual(TEXT("Schema version preserved"), Loaded->SchemaVersion, UTSTSSSaveGame::CurrentVersion);
+        TestTrue(TEXT("Started state preserved"), Loaded->bFirstWakeStarted);
+        TestEqual(TEXT("First Wake milestone preserved"), Loaded->FirstWakeBeat, ETSTSSFirstWakeBeat::EngineeringChecked);
+        TestEqual(TEXT("Party size preserved"), Loaded->PartyRoster.Num(), 1);
+        if (Loaded->PartyRoster.Num() == 1)
+        {
+            TestEqual(TEXT("Character ID preserved"), Loaded->PartyRoster[0].CharacterId, FName(TEXT("Ender")));
+            TestEqual(TEXT("Health preserved"), Loaded->PartyRoster[0].Health, 14);
+            TestEqual(TEXT("Resources preserved"), Loaded->PartyRoster[0].Resource, 4);
+        }
+    }
+    TestTrue(TEXT("Test slot cleaned up"), UGameplayStatics::DeleteGameInSlot(Slot, 0));
+    return bLoaded;
 }
 #endif
