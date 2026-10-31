@@ -1,5 +1,7 @@
 #include "TSTSSExplorerCharacter.h"
 #include "TSTSSMilestoneActor.h"
+#include "TSTSSPersistence.h"
+#include "TSTSSSaveGame.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -71,4 +73,21 @@ void ATSTSSExplorerCharacter::Interact()
             Milestone->TryActivate(FirstWakeState);
         }
     }
+}
+
+bool ATSTSSExplorerCharacter::SaveFirstWake(const FString& Slot)
+{
+    if (!IsValid(FirstWakeState)) return false;
+    UTSTSSSaveGame* Save = NewObject<UTSTSSSaveGame>(this);
+    Save->bFirstWakeStarted = FirstWakeState->HasStarted();
+    Save->FirstWakeBeat = FirstWakeState->GetCurrentBeat();
+    return UTSTSSPersistence::SaveProgress(Slot, Save);
+}
+
+bool ATSTSSExplorerCharacter::LoadFirstWake(const FString& Slot)
+{
+    if (!IsValid(FirstWakeState)) return false;
+    const UTSTSSSaveGame* Save = UTSTSSPersistence::LoadProgress(Slot);
+    if (!Save) return false;
+    return FirstWakeState->Restore(Save->bFirstWakeStarted, Save->FirstWakeBeat);
 }
