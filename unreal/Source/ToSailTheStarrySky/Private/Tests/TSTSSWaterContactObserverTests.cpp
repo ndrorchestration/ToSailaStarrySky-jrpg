@@ -34,9 +34,11 @@ bool FTSTSSWaterBeatOrderTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Restore verified prelanding checkpoint"), State->Restore(
         true, ETSTSSFirstWakeBeat::Launched, 0x07));
     TestFalse(TEXT("Cannot skip contact"), State->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed));
-    TestTrue(TEXT("Physics observer may advance contact"), State->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact));
-    TestTrue(TEXT("Flotation follows contact"), State->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed));
-    TestFalse(TEXT("Contact cannot repeat"), State->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact));
+    TestFalse(TEXT("Direct contact bypass blocked"), State->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact));
+    TestEqual(TEXT("Rejected contact preserves launch"), State->GetCurrentBeat(), ETSTSSFirstWakeBeat::Launched);
+    TestFalse(TEXT("Direct flotation bypass blocked"), State->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed));
+    TestEqual(TEXT("Rejected flotation preserves launch"), State->GetCurrentBeat(), ETSTSSFirstWakeBeat::Launched);
+    // Positive contact and flotation require native observer/physics integration evidence.
     return true;
 }
 #endif
