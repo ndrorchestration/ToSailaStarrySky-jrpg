@@ -16,6 +16,10 @@ public:
     UTSTSSFirstWakeState* GetFirstWakeState() const { return FirstWakeState; }
     UFUNCTION(BlueprintCallable, Category="TSTSS|Interaction")
     void Interact();
+    UFUNCTION(BlueprintCallable, Category="TSTSS|Save")
+    bool SaveFirstWake(const FString& Slot);
+    UFUNCTION(BlueprintCallable, Category="TSTSS|Save")
+    bool LoadFirstWake(const FString& Slot);
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="TSTSS|Camera")
     TObjectPtr<class USpringArmComponent> CameraBoom;
