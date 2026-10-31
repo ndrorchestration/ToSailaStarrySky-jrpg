@@ -45,3 +45,10 @@ Executed on the connected `neontic` Windows computer from isolated checkout `dc4
 - Visual Studio installer continued to show `Starting package install...`, without verified completion.
 
 Only when readiness is true should `Verify-Unreal.ps1 -EngineRoot 'C:\Program Files\Epic Games\UE_5.8' -BuildGameTarget` be used for native evidence. A green readiness result alone is not a compile or game test.
+
+
+## Additional native-host checks
+
+The Visual Studio installer created the `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools` directory and a `vswhere` instance of VS 17.14.44, but the instance explicitly reported `isComplete=false` and `isLaunchable=false`. An MSVC 14.44 tools directory and component-installation logs appeared; however, the `vswhere -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64` query still returned no qualifying instance. The Windows SDK include directory was still missing. This is **progress of the ongoing installation**, not toolchain readiness.
+
+Re-ran the readiness probe on the connected Windows host with the staged UE 5.8 path, UE 5.3 path, and a nonexistent path: all correctly returned exit code **2**, `ReadyForPinnedBuild=false`. The checks did not modify the project or any installed engine. The UE 5.8 directory still only contained `.egstore`; no Unreal compilation was attempted. Check completion of both installers before running native automation.
