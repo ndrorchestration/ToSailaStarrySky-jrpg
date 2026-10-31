@@ -1,5 +1,6 @@
 #include "AureateWakeWaterObserverComponent.h"
 #include "AureateWakePreviewActor.h"
+#include "TSTSSWaterlineGeometry.h"
 #include "Components/PrimitiveComponent.h"
 
 UAureateWakeWaterObserverComponent::UAureateWakeWaterObserverComponent()
@@ -18,6 +19,14 @@ void UAureateWakeWaterObserverComponent::TickComponent(float DeltaTime,
     ELevelTick TickType, FActorComponentTickFunction* Function)
 {
     Super::TickComponent(DeltaTime, TickType, Function);
+    // This is an alternate review-path observer, NOT the default physical
+    // landing authority. In particular it must not run alongside the
+    // ATSTSSWaterContactAdapter for the same story in one authored level.
+    if (!bEnableStoryWaterObservation)
+    {
+        if (IsValid(LandingGate)) LandingGate->Reset();
+        return;
+    }
     if (!IsValid(PhysicalHull) || !IsValid(WaterCollision) ||
         !IsValid(Story) || !IsValid(LandingGate) ||
         !PhysicalHull->GetGenerateOverlapEvents() || !WaterCollision->GetGenerateOverlapEvents())
@@ -38,7 +47,19 @@ void UAureateWakeWaterObserverComponent::TickComponent(float DeltaTime,
         return; // Chapter gate: never infer story milestones from geometry.
     }
 
-    const bool bTouchingWater = PhysicalHull->IsOverlappingComponent(WaterCollision);
+    // Mere collision-volume overlap is not proof the hull crossed the
+    // surface. This additional AABB test mirrors the foundation adapter's
+    // below-surface requirement, without inventing a cinematic contact.
+    FVector HullOrigin, HullExtent;
+    FVector WaterOrigin, WaterExtent;
+    float HullRadius = 0.f;
+    float WaterRadius = 0.f;
+    PhysicalHull->GetComponentBounds(HullOrigin, HullExtent, HullRadius);
+    WaterCollision->GetComponentBounds(WaterOrigin, WaterExtent, WaterRadius);
+    const bool bTouchingWater =
+        TSTSSWaterlineGeometry::HasMeasuredHullWaterlineIntersection(
+            PhysicalHull->IsOverlappingComponent(WaterCollision),
+            HullOrigin.Z, HullExtent.Z, WaterOrigin.Z, WaterExtent.Z);
     // A simulating body can move independently of its owning actor or root.
     // Use the actual rigid-body velocity where possible; otherwise read the
     // kinematic component velocity. Scene wiring still requires native proof.
