@@ -9,12 +9,12 @@ $EditorCmd = Join-Path $EngineRoot 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe'
 if (-not (Test-Path $BuildTool)) { throw "Missing Unreal Build.bat at $BuildTool" }
 if (-not (Test-Path $EditorCmd)) { throw "Missing UnrealEditor-Cmd.exe at $EditorCmd" }
 $Evidence = Join-Path $PSScriptRoot '../Saved/MigrationEvidence'
-New-Item -Path $Evidence -ItemType Directory -Force | Out-Null
 $GitHead = (git -C (Join-Path $PSScriptRoot '../..') rev-parse HEAD)
 if ($LASTEXITCODE -ne 0 -or -not $GitHead) { throw 'Unable to resolve repository HEAD' }
 $WorkingTree = @(git -C (Join-Path $PSScriptRoot '../..') status --porcelain)
 if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect working tree' }
 if ($WorkingTree.Count -gt 0) { throw 'Working tree has uncommitted changes; evidence cannot be bound to HEAD' }
+New-Item -Path $Evidence -ItemType Directory -Force | Out-Null
 $GitHead | Set-Content (Join-Path $Evidence 'head.txt')
 & $BuildTool ToSailTheStarrySkyEditor Win64 Development "-Project=$Project" -WaitMutex 2>&1 |
     Tee-Object (Join-Path $Evidence 'build.log')
