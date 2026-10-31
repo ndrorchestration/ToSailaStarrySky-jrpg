@@ -223,6 +223,9 @@ bool FTSTSSWaterLandingTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Impact is not stable flotation"), Gate->Observe(0.1f, true, 180.f, Story));
     TestEqual(TEXT("Collision records contact"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
     for (int32 Step = 0; Step < 10; ++Step) Gate->Observe(0.1f, true, 5.f, Story);
+    TestFalse(TEXT("Invalid delta rejected"), Gate->Observe(-0.1f, true, 5.f, Story));
+    TestEqual(TEXT("Invalid observation clears stability timer"), Gate->GetStableContactSeconds(), 0.f);
+    for (int32 Step = 0; Step < 10; ++Step) Gate->Observe(0.1f, true, 5.f, Story);
     TestFalse(TEXT("Losing overlap clears timer"), Gate->Observe(0.1f, false, 0.f, Story));
     TestEqual(TEXT("Brief contact is insufficient"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
     bool bConfirmed = false;
