@@ -19,6 +19,16 @@ bool FTSTSSFirstWakeOrderTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Cannot skip checks and launch"), State->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact));
     State->Reset();
     TestFalse(TEXT("Reset clears started state"), State->HasStarted());
+    TestFalse(TEXT("Reject impossible unstarted saved milestone"),
+        State->Restore(false, ETSTSSFirstWakeBeat::Launched));
+    TestTrue(TEXT("Restore valid progressed story"),
+        State->Restore(true, ETSTSSFirstWakeBeat::EngineeringChecked));
+    TestEqual(TEXT("Restored beat matches save"),
+        State->GetCurrentBeat(), ETSTSSFirstWakeBeat::EngineeringChecked);
+    TestFalse(TEXT("Cannot skip from restored beat"),
+        State->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed));
+    TestTrue(TEXT("Continue from restored beat"),
+        State->AdvanceTo(ETSTSSFirstWakeBeat::Launched));
     return true;
 }
 
