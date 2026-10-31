@@ -3,6 +3,7 @@
 #include "TSTSSCombatRules.h"
 #include "TSTSSSaveGame.h"
 #include "TSTSSPersistence.h"
+#include "TSTSSWaterLandingGate.h"
 #include "Kismet/GameplayStatics.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -207,5 +208,28 @@ bool FTSTSSSaveRoundTripTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("Test slot cleaned up"), UGameplayStatics::DeleteGameInSlot(Slot, 0));
     return bLoaded;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSWaterLandingTest,
+    "TSTSS.FirstWake.WaterLandingRequiresMeasuredStability",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTSTSSWaterLandingTest::RunTest(const FString& Parameters)
+{
+    UTSTSSFirstWakeState* Story = NewObject<UTSTSSFirstWakeState>();
+    UTSTSSWaterLandingGate* Gate = NewObject<UTSTSSWaterLandingGate>();
+    Story->Restore(true, ETSTSSFirstWakeBeat::Launched, 0x07);
+    TestFalse(TEXT("No water contact"), Gate->Observe(0.1f, false, 0.f, Story));
+    TestEqual(TEXT("Unchanged without collision"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::Launched);
+    TestFalse(TEXT("Impact is not stable flotation"), Gate->Observe(0.1f, true, 180.f, Story));
+    TestEqual(TEXT("Collision records contact"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
+    for (int32 Step = 0; Step < 10; ++Step) Gate->Observe(0.1f, true, 5.f, Story);
+    TestFalse(TEXT("Losing overlap clears timer"), Gate->Observe(0.1f, false, 0.f, Story));
+    TestEqual(TEXT("Brief contact is insufficient"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
+    bool bConfirmed = false;
+    for (int32 Step = 0; Step < 21; ++Step)
+        bConfirmed |= Gate->Observe(0.1f, true, 5.f, Story);
+    TestTrue(TEXT("Sustained stable overlap confirms flotation"), bConfirmed);
+    TestEqual(TEXT("Flotation beat recorded"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::FlotationConfirmed);
+    return true;
 }
 #endif
