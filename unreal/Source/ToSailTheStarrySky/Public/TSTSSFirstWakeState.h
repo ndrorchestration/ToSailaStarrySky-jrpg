@@ -53,6 +53,11 @@ public:
     UFUNCTION(BlueprintPure, Category="TSTSS|First Wake")
     uint8 GetInspectionMask() const { return InspectionMask; }
 
+    // One localized objective source for Blueprint HUD and pause/journal UI.
+    // Pure presentation: never advances or mutates progression state.
+    UFUNCTION(BlueprintPure, Category="TSTSS|First Wake|UX")
+    FText GetCurrentObjective() const;
+
     UFUNCTION(BlueprintCallable, Category="TSTSS|First Wake")
     void Reset();
 
