@@ -51,9 +51,11 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Rejected spec preserves resources"), Output.Roster[0].Resource, AcceptedResources);
 
     Catalog.Add(TEXT("Strike"), Strike);
+    TMap<FName, TSet<FName>> FoeLearned;
+    FoeLearned.Add(TEXT("Foe"), TSet<FName>{TEXT("Strike")});
     TestFalse(TEXT("Out-of-turn actor blocked"), FTSTSSCombatAbilities::TryUse(
         State, TEXT("Foe"), TEXT("Ender"), TEXT("Strike"), Catalog,
-        TMap<FName, TSet<FName>>{{TEXT("Foe"), TSet<FName>{TEXT("Strike")}}}, Teams, Output));
+        FoeLearned, Teams, Output));
     TestEqual(TEXT("Out-of-turn rejection preserves output"), Output.Roster[1].Health, AcceptedHealth);
     TestEqual(TEXT("Input turn remains unchanged"), State.AcceptedActions, 0);
     return true;
