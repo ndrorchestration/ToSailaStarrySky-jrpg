@@ -50,7 +50,29 @@ $Report = Get-Content $ReportPath -Raw | ConvertFrom-Json
 if ($null -eq $Report.succeeded -or $null -eq $Report.failed -or $null -eq $Report.notRun) {
     throw 'Automation report schema missing required summary fields; cannot claim PASS'
 }
-if ($Report.failed -gt 0 -or $Report.notRun -gt 0 -or $Report.succeeded -lt $TestDeclarations.Count) {
+# Epic's JSON report includes per-test fullTestPath, state, warnings and errors.
+# Counts alone are insufficient: an omitted new test could be masked by extras.
+if ($null -eq $Report.tests) { throw 'Automation JSON lacks per-test results' }
+$Reported = @($Report.tests | Where-Object { $_.fullTestPath -like 'TSTSS.*' })
+$ReportedNames = @($Reported | ForEach-Object { [string]$_.fullTestPath })
+if (@($ReportedNames | Sort-Object -Unique).Count -ne $ReportedNames.Count) {
+    throw 'Duplicate TSTSS result identities in automation report'
+}
+$Missing = @($TestDeclarations | Where-Object { $_ -notin $ReportedNames })
+$Unexpected = @($ReportedNames | Where-Object { $_ -notin $TestDeclarations })
+if ($Missing.Count -gt 0 -or $Unexpected.Count -gt 0) {
+    throw "Automation identity mismatch: missing=$($Missing -join ', ') unexpected=$($Unexpected -join ', ')"
+}
+$Unsuccessful = @($Reported | Where-Object {
+    $_.state -ne 'Success' -or $_.errors -ne 0 -or $_.warnings -ne 0
+})
+if ($Unsuccessful.Count -gt 0) {
+    throw "TSTSS tests not cleanly successful: $(($Unsuccessful | ForEach-Object { $_.fullTestPath + ':' + $_.state }) -join ', ')"
+}
+if ($null -ne $Report.inProcess -and $Report.inProcess -ne 0) {
+    throw 'Automation report contains tests still in progress'
+}
+if ($Report.failed -gt 0 -or $Report.notRun -gt 0 -or $Report.succeededWithWarnings -gt 0 -or $Report.succeeded -lt $TestDeclarations.Count) {
     throw "Automation evidence incomplete: succeeded=$($Report.succeeded), failed=$($Report.failed), notRun=$($Report.notRun)"
 }
 Write-Host "Native build and reported automation checks passed at $GitHead. Visual acceptance remains separate."
