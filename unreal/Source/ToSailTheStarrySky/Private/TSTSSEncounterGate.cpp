@@ -17,7 +17,8 @@ ETSTSSEncounterOutcome FTSTSSEncounterGate::Evaluate(
             !State.Order.Contains(Unit.CharacterId) || Unit.MaxHealth <= 0 ||
             Unit.Health < 0 || Unit.Health > Unit.MaxHealth ||
             Unit.MaxResource < 0 || Unit.Resource < 0 ||
-            Unit.Resource > Unit.MaxResource) return ETSTSSEncounterOutcome::Invalid;
+            Unit.Resource > Unit.MaxResource || Unit.Attack < 0 ||
+            Unit.Defense < 0) return ETSTSSEncounterOutcome::Invalid;
         Seen.Add(Unit.CharacterId);
         const FName* Faction = Factions.Find(Unit.CharacterId);
         if (!Faction) return ETSTSSEncounterOutcome::Invalid;
