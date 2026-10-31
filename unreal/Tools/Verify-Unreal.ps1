@@ -9,6 +9,12 @@ $BuildTool = Join-Path $EngineRoot 'Engine/Build/BatchFiles/Build.bat'
 $EditorCmd = Join-Path $EngineRoot 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe'
 if (-not (Test-Path $BuildTool)) { throw "Missing Unreal Build.bat at $BuildTool" }
 if (-not (Test-Path $EditorCmd)) { throw "Missing UnrealEditor-Cmd.exe at $EditorCmd" }
+$EngineVersionPath = Join-Path $EngineRoot 'Engine/Build/Build.version'
+if (-not (Test-Path $EngineVersionPath)) { throw "Missing pinned Unreal Build.version at $EngineVersionPath" }
+$EngineVersion = Get-Content $EngineVersionPath -Raw | ConvertFrom-Json
+if ($EngineVersion.MajorVersion -ne 5 -or $EngineVersion.MinorVersion -ne 8) {
+    throw "Unreal version mismatch: expected 5.8, got $($EngineVersion.MajorVersion).$($EngineVersion.MinorVersion)"
+}
 $Evidence = Join-Path $PSScriptRoot '../Saved/MigrationEvidence'
 $GitHead = (git -C (Join-Path $PSScriptRoot '../..') rev-parse HEAD)
 if ($LASTEXITCODE -ne 0 -or -not $GitHead) { throw 'Unable to resolve repository HEAD' }
