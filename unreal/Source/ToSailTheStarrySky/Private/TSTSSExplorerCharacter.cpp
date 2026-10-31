@@ -70,7 +70,12 @@ void ATSTSSExplorerCharacter::Interact()
     {
         if (ATSTSSMilestoneActor* Milestone = Cast<ATSTSSMilestoneActor>(Hit.GetActor()))
         {
-            Milestone->TryActivate(FirstWakeState);
+            // Camera boom distance cannot extend usable interaction range.
+            const float Range = FMath::Max(0.f, InteractionDistance);
+            if (FVector::DistSquared(GetActorLocation(), Hit.ImpactPoint) <= FMath::Square(Range))
+            {
+                Milestone->TryActivate(FirstWakeState);
+            }
         }
     }
 }
