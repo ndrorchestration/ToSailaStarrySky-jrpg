@@ -19,6 +19,14 @@ enum class ETSTSSFirstWakeBeat : uint8
     ReturnedToBerth
 };
 
+UENUM(BlueprintType)
+enum class ETSTSSInspectionStation : uint8
+{
+    Lift,
+    Pressure,
+    Reserve
+};
+
 UCLASS(BlueprintType)
 class TOSAILTHESTARRYSKY_API UTSTSSFirstWakeState : public UObject
 {
@@ -34,11 +42,20 @@ public:
     bool HasStarted() const { return bStarted; }
 
     UFUNCTION(BlueprintCallable, Category="TSTSS|First Wake")
+    bool InspectStation(ETSTSSInspectionStation Station);
+
+    UFUNCTION(BlueprintPure, Category="TSTSS|First Wake")
+    bool AreInspectionsComplete() const { return InspectionMask == 0x07; }
+
+    UFUNCTION(BlueprintPure, Category="TSTSS|First Wake")
+    uint8 GetInspectionMask() const { return InspectionMask; }
+
+    UFUNCTION(BlueprintCallable, Category="TSTSS|First Wake")
     void Reset();
 
     // Restores only in-range states; avoids replaying milestone side effects.
     UFUNCTION(BlueprintCallable, Category="TSTSS|First Wake")
-    bool Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat);
+    bool Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat, uint8 SavedInspectionMask = 0);
 
 private:
     UPROPERTY(VisibleAnywhere, Category="TSTSS|First Wake")
@@ -46,4 +63,7 @@ private:
 
     UPROPERTY(VisibleAnywhere, Category="TSTSS|First Wake")
     bool bStarted = false;
+
+    UPROPERTY(VisibleAnywhere, Category="TSTSS|First Wake")
+    uint8 InspectionMask = 0;
 };
