@@ -8,6 +8,7 @@
 #include "Components/InputComponent.h"
 #include "Engine/World.h"
 #include "CollisionQueryParams.h"
+#include "Kismet/GameplayStatics.h"
 
 ATSTSSExplorerCharacter::ATSTSSExplorerCharacter()
 {
@@ -77,11 +78,21 @@ void ATSTSSExplorerCharacter::Interact()
 
 bool ATSTSSExplorerCharacter::SaveFirstWake(const FString& Slot)
 {
-    if (!IsValid(FirstWakeState)) return false;
-    UTSTSSSaveGame* Save = NewObject<UTSTSSSaveGame>(this);
-    Save->bFirstWakeStarted = FirstWakeState->HasStarted();
-    Save->FirstWakeBeat = FirstWakeState->GetCurrentBeat();
-    Save->InspectionMask = FirstWakeState->GetInspectionMask();
+    if (!IsValid(FirstWakeState) || !UTSTSSPersistence::IsValidSlotName(Slot))
+    {
+        return false;
+    }
+
+    // Never silently replace a corrupt or unsupported existing slot.
+    // Reuse its validated payload so party stats survive story-only saves.
+    const bool bExistingSlot = UGameplayStatics::DoesSaveGameExist(Slot, 0);
+    UTSTSSSaveGame* Save = bExistingSlot
+        ? UTSTSSPersistence::LoadProgress(Slot)
+        : NewObject<UTSTSSSaveGame>(this);
+    if (!IsValid(Save) || !Save->CaptureFirstWake(FirstWakeState))
+    {
+        return false;
+    }
     return UTSTSSPersistence::SaveProgress(Slot, Save);
 }
 
