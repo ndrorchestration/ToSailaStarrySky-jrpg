@@ -94,6 +94,10 @@ protected:
     EAureateWakeForm CurrentForm = EAureateWakeForm::Skyborne;
 
 private:
+    /** Keep legacy cube mesh until an authored wing and explicit review pose are both selected. */
+    UPROPERTY(Transient)
+    TObjectPtr<UStaticMesh> OriginalCubeWingMesh;
+
     bool bTransitioning = false;
     float TransitionElapsed = 0.f;
     EAureateWakeForm TargetForm = EAureateWakeForm::Skyborne;
