@@ -140,6 +140,44 @@ class CastIntakeTests(unittest.TestCase):
         with self.assertRaises(validator.IntakeFailure):
             validator.inspect_glb(self.glb)
 
+    def test_existing_unreal_import_folder_blocks_before_modification(self):
+        import types
+        validated = validator.validate_manifest(self.manifest, self.root)
+        class FakeLibrary:
+            @staticmethod
+            def does_directory_exist(path):
+                return True
+            @staticmethod
+            def list_assets(path, recursive=True, include_folder=False):
+                return ["existing_creator_asset"]
+        class FakeHelpers:
+            @staticmethod
+            def get_asset_tools():
+                raise AssertionError("Asset tools must never be contacted")
+        old = sys.modules.get("unreal")
+        sys.modules["unreal"] = types.SimpleNamespace(
+            EditorAssetLibrary=FakeLibrary, AssetToolsHelpers=FakeHelpers)
+        try:
+            with self.assertRaises(validator.IntakeFailure):
+                validator.import_review(validated)
+        finally:
+            if old is None:
+                sys.modules.pop("unreal", None)
+            else:
+                sys.modules["unreal"] = old
+
+    def test_both_heroes_structurally_valid_still_not_art_approved(self):
+        second = self.root / "ionia.glb"
+        second.write_bytes(fake_glb())
+        self.pack["characters"].append({
+            "id": "ionia", "model_path": "ionia.glb",
+            "model_sha256": hashlib.sha256(second.read_bytes()).hexdigest(),
+        })
+        self.save()
+        result = validator.validate_manifest(self.manifest, self.root, require_both=True)
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(result["authority"], "CANDIDATE_ONLY_NOT_CREATOR_ART_APPROVAL")
+
     def test_unreal_import_separate_from_validation(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn("replace_existing", source)
