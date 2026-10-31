@@ -61,6 +61,7 @@ $RequiredTests = @(
     'TSTSS.FirstWake.WaterLandingRequiresMeasuredStability',
     'TSTSS.FirstWake.WaterLandingRestore',
     'TSTSS.FirstWake.WaterLandingNegativePaths',
+    'TSTSS.FirstWake.WaterlineGeometry',
     'TSTSS.Save.RejectsUnsupportedSchema',
     'TSTSS.Save.RejectsUnsafeSlots',
     'TSTSS.Save.RoundTripFirstWakeAndParty'
