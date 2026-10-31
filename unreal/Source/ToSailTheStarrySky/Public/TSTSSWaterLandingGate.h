@@ -4,8 +4,8 @@
 #include "TSTSSFirstWakeState.h"
 #include "TSTSSWaterLandingGate.generated.h"
 
-// Physics observations must originate in a real ship/water collision component.
-// This logic gate does not itself simulate waves, hull buoyancy or water overlaps.
+// DEPRECATED COMPATIBILITY ONLY. Observe intentionally rejects all synthetic
+// contact data. ATSTSSWaterContactObserver is the active UE water evidence path.
 UCLASS(BlueprintType)
 class TOSAILTHESTARRYSKY_API UTSTSSWaterLandingGate : public UObject
 {
