@@ -14,6 +14,10 @@ public:
     bool TryActivate(UTSTSSFirstWakeState* State);
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="TSTSS|First Wake")
     ETSTSSFirstWakeBeat Milestone = ETSTSSFirstWakeBeat::FlyerDiscovered;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="TSTSS|First Wake")
+    bool bIsInspectionStation = false;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="TSTSS|First Wake", meta=(EditCondition="bIsInspectionStation"))
+    ETSTSSInspectionStation InspectionStation = ETSTSSInspectionStation::Lift;
     UFUNCTION(BlueprintImplementableEvent, Category="TSTSS|First Wake")
     void OnMilestoneActivated();
 protected:
