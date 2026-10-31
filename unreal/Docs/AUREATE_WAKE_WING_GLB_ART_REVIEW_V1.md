@@ -1,5 +1,9 @@
 # Aureate Wake — Procedural Dragonfly Wing GLB Art Review v1
 
+## Unit-scale correction — 2026-10-31 (v2 asset supersedes v1)
+
+**Do not import the original v1 GLB:** its unscaled numeric coordinates represented 280 centimeters but the glTF 2.0 specification defines positions in meters. Depending on the importer this could produce a 100× oversize wing. Old v1 GLB SHA-256: `6d9a8f24482637378a909c0051ae8547e1a22965919dcaaba5c21d6ca8fc3e7e`, **RETIRED FOR IMPORT**. The generator now serializes every source-centimeter position in meters (factor 0.01), retains unit normal vectors, and includes exact GLB scale regression tests. New glTF body span: 2.8 meters, brass root extends 0.16 meters behind root; overall X bounds approximately -0.16 to +2.804 m. Unreal imported visible bounds should therefore be ~296.4 cm before editorial pose scale (native confirmation pending). Rebuild with the updated script rather than importing the old downloadable v1 package.
+
 **2026-10-31 / Status:** source-built 3D asset study; NOT an approved ship mesh, not a native Unreal render, no gameplay incorporation.
 
 ## Why this work
