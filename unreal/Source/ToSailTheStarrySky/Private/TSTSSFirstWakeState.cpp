@@ -32,3 +32,15 @@ void UTSTSSFirstWakeState::Reset()
     bStarted = false;
     CurrentBeat = ETSTSSFirstWakeBeat::FlyerDiscovered;
 }
+
+bool UTSTSSFirstWakeState::Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat)
+{
+    if (static_cast<uint8>(SavedBeat) > static_cast<uint8>(ETSTSSFirstWakeBeat::ReturnedToBerth) ||
+        (!bWasStarted && SavedBeat != ETSTSSFirstWakeBeat::FlyerDiscovered))
+    {
+        return false;
+    }
+    bStarted = bWasStarted;
+    CurrentBeat = SavedBeat;
+    return true;
+}
