@@ -32,3 +32,10 @@ jobs:
           test -s "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Lookdev.glb"
           test -s "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Albedo.png"
           test -s "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Manifest.json"
+      - name: Upload review-only corrected GLB files (not an approved asset)
+        uses: actions/upload-artifact@v4
+        with:
+          name: AureateWake-Wing-GLB-CORRECTED-ReviewOnly
+          path: ${{ runner.temp }}/aureate-wing-artpack/*
+          if-no-files-found: error
+          retention-days: 30
