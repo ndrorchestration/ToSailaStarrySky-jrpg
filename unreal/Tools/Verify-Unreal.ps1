@@ -3,6 +3,16 @@ param(
     [switch]$SkipTests
 )
 $ErrorActionPreference = 'Stop'
+# A different UE version or half-installed editor must never be accepted as a
+# native game build. Check 5.8.4+ and the real MSVC + SDK before invoking UBT.
+$PrereqGate = Join-Path $PSScriptRoot 'Check-UnrealHost.ps1'
+if (-not (Test-Path -LiteralPath $PrereqGate -PathType Leaf)) {
+    throw 'Missing Unreal native host prerequisites checker'
+}
+& $PrereqGate -EngineRoot $EngineRoot -RequireReady
+if ($LASTEXITCODE -ne 0) {
+    throw "Unreal native host prerequisites failed ($LASTEXITCODE); not attempting Build.bat"
+}
 $Project = (Resolve-Path (Join-Path $PSScriptRoot '../ToSailTheStarrySky.uproject')).Path
 $BuildTool = Join-Path $EngineRoot 'Engine/Build/BatchFiles/Build.bat'
 $EditorCmd = Join-Path $EngineRoot 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe'
