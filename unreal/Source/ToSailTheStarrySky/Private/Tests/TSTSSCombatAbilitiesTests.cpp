@@ -59,6 +59,14 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
         FoeLearned, Teams, TEXT("crew"), TEXT("enemy"), Output));
     TestEqual(TEXT("Out-of-turn rejection preserves output"), Output.Roster[1].Health, AcceptedHealth);
     TestEqual(TEXT("Input turn remains unchanged"), State.AcceptedActions, 0);
+    FTSTSSCombatTurnState Finished = Output;
+    Finished.Roster[1].Health = 0;
+    FTSTSSCombatTurnState TerminalOutput = Output;
+    TestFalse(TEXT("Completed encounter blocks learned ability"),
+        FTSTSSCombatAbilities::TryUse(Finished, TEXT("Ender"), TEXT("Foe"),
+            TEXT("Strike"), Catalog, Learned, Teams, TEXT("crew"), TEXT("enemy"), TerminalOutput));
+    TestEqual(TEXT("Terminal rejection preserves output"), TerminalOutput.AcceptedActions, Output.AcceptedActions);
+
     return true;
 }
 #endif
