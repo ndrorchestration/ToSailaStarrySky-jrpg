@@ -32,3 +32,9 @@ These tests are **source committed but Unreal-native execution has not been veri
 - `Private/Tests/TSTSSCombatTurnsTests.cpp` provides Unreal automation regression coverage for out-of-turn rejection, knockout, skipped-final-participant round rollover, input immutability, and invalid order rejection.
 - **All test results remain unverified.** Compile and run the `TSTSS.Combat.TurnOrderAndAtomicity` automation test under Unreal Engine 5.8 before accepting the semantics. Review invalid/unsupported ability targets, encounter authority, learned skills, participant allegiance, incapacitated allies and save serialization separately.
 - This is a noncanonical engineering prototype; it does not connect to player-facing First Wake, combat HUD, game art, enemy AI, chapter events or shipping installers. The Godot branch and approved characters remain unchanged.
+
+## Unreal learned-ability authorization — 2026-10-30
+
+The isolated `FTSTSSCombatAbilities` adapter receives explicit ability specs, learned-by-character records and faction mappings. It rejects unknown/unlearned abilities, invalid factions and incompatible self/ally/enemy targets before delegating to `FTSTSSCombatTurns::TryAction`. Regression coverage is authored under `TSTSS.Combat.AbilityAuthorization`.
+
+**Execution/acceptance boundary:** Unreal 5.8 compilation and tests have not been demonstrated. The ability catalog and learning records in tests are synthetic fixtures, not canonical skills or character progression. No encounters, HUD, VFX, scene entry, balance acceptance or release authority is implied. Native Editor tests and exact-head build logs are required before promotion.
