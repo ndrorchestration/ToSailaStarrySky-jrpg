@@ -34,12 +34,18 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     if (!IsValid(Gate)) return;
-    // Player BeginPlay may occur after this actor, so retry only while unbound.
-    if (!IsValid(Story) && bAutoBindPlayerStory)
+    // Reconcile possession on every frame: respawn/repossess must not leave a
+    // stale story object driving ship-water progression.
+    if (bAutoBindPlayerStory)
     {
+        UTSTSSFirstWakeState* CurrentPlayerStory = nullptr;
         if (ATSTSSExplorerCharacter* Player = Cast<ATSTSSExplorerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
         {
-            if (IsValid(Player->GetFirstWakeState())) BindStory(Player->GetFirstWakeState());
+            CurrentPlayerStory = Player->GetFirstWakeState();
+        }
+        if (Story != CurrentPlayerStory)
+        {
+            BindStory(CurrentPlayerStory);
         }
     }
     if (!IsValid(Story) || !IsValid(Hull) || !Hull->IsSimulatingPhysics())
