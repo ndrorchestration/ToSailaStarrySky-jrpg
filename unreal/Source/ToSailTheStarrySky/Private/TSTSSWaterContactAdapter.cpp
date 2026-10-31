@@ -44,16 +44,20 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
             }
         }
     }
+    FVector HullOrigin, HullExtent;
+    Hull->GetComponentBounds(HullOrigin, HullExtent, false);
+    const float Draft = FMath::Max(1.f, HullDraftCm);
+    const float Submersion = bInWater && FMath::IsFinite(WaterSurfaceZ)
+        ? FMath::Clamp((WaterSurfaceZ - (HullOrigin.Z - Draft)) / (2.f * Draft), 0.f, 1.f)
+        : 0.f;
+    // Mere overlap with a tagged volume is not sufficient for sea contact.
+    const bool bActualImmersion = bInWater && Submersion > 0.01f;
     const float VerticalSpeed = Hull->GetPhysicsLinearVelocity().Z;
-    if (bInWater && bEnablePrototypeBuoyancy && HullDraftCm > 1.f &&
+    if (bActualImmersion && bEnablePrototypeBuoyancy && HullDraftCm > 1.f &&
         FMath::IsFinite(MaxBuoyantAccelerationCms2) &&
         FMath::IsFinite(VerticalDampingPerSecond) &&
         FMath::IsFinite(WaterSurfaceZ))
     {
-        FVector HullOrigin, HullExtent;
-        Hull->GetComponentBounds(HullOrigin, HullExtent, false);
-        const float Submersion = FMath::Clamp(
-            (WaterSurfaceZ - (HullOrigin.Z - HullDraftCm)) / (2.f * HullDraftCm), 0.f, 1.f);
         const float Acceleration = FMath::Max(0.f, MaxBuoyantAccelerationCms2) * Submersion -
             FMath::Max(0.f, VerticalDampingPerSecond) * VerticalSpeed;
         const float Mass = Hull->GetMass();
@@ -62,5 +66,5 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
             Hull->AddForce(FVector(0.f, 0.f, Mass * Acceleration));
         }
     }
-    Gate->Observe(DeltaSeconds, bInWater, VerticalSpeed, Story);
+    Gate->Observe(DeltaSeconds, bActualImmersion, VerticalSpeed, Story);
 }
